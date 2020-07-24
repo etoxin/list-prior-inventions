@@ -5,8 +5,8 @@ const pad = require('pad-right');
 
 program
   .option('-u, --user <type>', '<username>')
-  .option('-p, --page <type>', 'page');
-
+  .option('-p, --page <type>', 'page')
+  .option('-n, --namepad <type>', 'pad the name');
 program.parse(process.argv);
 
 if (!program.user) {
@@ -15,14 +15,18 @@ if (!program.user) {
 }
 
 async function run() {
-  const response = await fetch(`https://api.github.com/users/${program.user}/repos?type=owner&sort=created&page=${program.page ? program.page : 1}`).then(res => {
-    return res;
-  }).then(d => d.json())
+  const page = program.page ? program.page : 1;
+  const url = `https://api.github.com/users/${program.user}/repos?type=owner&sort=created&page=${page}`;
+  const response = await fetch(url)
+    .then(res => res)
+    .then(d => d.json())
 
   response.forEach(repo => {
-    console.log(`${pad(repo.name, 50, ' ')}   ${pad(format(new Date(repo.created_at), "d-M-Y"), 10, ' ')}   ${repo.url}`);
+    const name = pad(repo.name, program.namepad ? program.namepad : 50, ' ');
+    const date = pad(format(new Date(repo.created_at), "d-M-Y"), 12, ' ');
+
+    console.log(`${name} ${date} ${repo.url}`);
   })
 }
 
 run();
-
